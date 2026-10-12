@@ -1,11 +1,12 @@
-
-
 package com.company.qa.utils;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 
 public class DriverFactory {
 
@@ -22,20 +23,51 @@ public class DriverFactory {
             switch (browser.trim().toLowerCase()) {
 
                 case "chrome":
-                    driver = new ChromeDriver();
+                    ChromeOptions chromeOptions = new ChromeOptions();
+
+                    // Headless mode on GitHub Actions only
+                    if ("true".equalsIgnoreCase(
+                            System.getenv("GITHUB_ACTIONS"))) {
+
+                        chromeOptions.addArguments("--headless=new");
+                        chromeOptions.addArguments("--no-sandbox");
+                        chromeOptions.addArguments("--disable-dev-shm-usage");
+                    }
+
+                    driver = new ChromeDriver(chromeOptions);
                     break;
 
                 case "firefox":
-                    driver = new FirefoxDriver();
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+
+                    // Headless mode on GitHub Actions only
+                    if ("true".equalsIgnoreCase(
+                            System.getenv("GITHUB_ACTIONS"))) {
+
+                        firefoxOptions.addArguments("-headless");
+                    }
+
+                    driver = new FirefoxDriver(firefoxOptions);
                     break;
 
                 case "edge":
-                    driver = new EdgeDriver();
+                    EdgeOptions edgeOptions = new EdgeOptions();
+
+                    // Headless mode on GitHub Actions only
+                    if ("true".equalsIgnoreCase(
+                            System.getenv("GITHUB_ACTIONS"))) {
+
+                        edgeOptions.addArguments("--headless=new");
+                        edgeOptions.addArguments("--no-sandbox");
+                        edgeOptions.addArguments("--disable-dev-shm-usage");
+                    }
+
+                    driver = new EdgeDriver(edgeOptions);
                     break;
 
                 default:
                     throw new IllegalArgumentException(
-                        "Unsupported browser: " + browser);
+                            "Unsupported browser: " + browser);
             }
         }
 
