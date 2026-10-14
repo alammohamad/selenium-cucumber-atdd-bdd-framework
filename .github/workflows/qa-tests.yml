@@ -1,3 +1,4 @@
+
 name: Cucumber BDD Automation Tests
 
 on:
@@ -32,3 +33,17 @@ jobs:
           name: cucumber-html-report
           path: target/cucumber-reports/cucumber.html
           if-no-files-found: warn
+
+      - name: Send Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook-type: incoming-webhook
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            text: |
+              Cucumber BDD Automation Tests finished.
+              Status: ${{ job.status }}
+              Repository: ${{ github.repository }}
+              Branch: ${{ github.ref_name }}
+              <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Actions run>
