@@ -55,12 +55,13 @@ jobs:
           if-no-files-found: warn
 
       # Send the result to Slack
+      
       - name: Send Slack notification
         if: always()
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
               "text": "Cucumber BDD Automation Tests finished.\nStatus: ${{ job.status }}\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Actions run>"
