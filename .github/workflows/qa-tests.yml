@@ -1,4 +1,3 @@
-
 name: Cucumber BDD Automation Tests
 
 on:
@@ -26,6 +25,7 @@ jobs:
       - name: Run Cucumber tests
         run: mvn --batch-mode clean test
 
+      # Upload the Cucumber HTML report, even if tests fail
       - name: Upload Cucumber HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -34,6 +34,18 @@ jobs:
           path: target/cucumber-reports/cucumber.html
           if-no-files-found: warn
 
+      # Diagnostic step: find the actual generated files
+      - name: List generated test files
+        if: always()
+        run: |
+          echo "Checking generated files under target..."
+          if [ -d target ]; then
+            find target -maxdepth 5 -type f | sort
+          else
+            echo "The target directory does not exist."
+          fi
+
+      # Upload screenshots if the expected directory contains files
       - name: Upload failure screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,6 +54,7 @@ jobs:
           path: target/failure-screenshots/
           if-no-files-found: warn
 
+      # Send the result to Slack
       - name: Send Slack notification
         if: always()
         uses: slackapi/slack-github-action@v2.1.1
@@ -49,9 +62,6 @@ jobs:
           webhook-type: incoming-webhook
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
-            text: |
-              Cucumber BDD Automation Tests finished.
-              Status: ${{ job.status }}
-              Repository: ${{ github.repository }}
-              Branch: ${{ github.ref_name }}
-              <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Actions run>
+            {
+              "text": "Cucumber BDD Automation Tests finished.\nStatus: ${{ job.status }}\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Actions run>"
+            }
