@@ -1,0 +1,162 @@
+package com.company.qa.reporting;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+public class ManagerReportGenerator {
+
+    public static void main(String[] args) throws Exception {
+
+        Path projectRoot = Path.of(System.getProperty("user.dir"));
+
+        Path resultsFile = projectRoot.resolve(
+                "target/surefire-reports/testng-results.xml");
+
+        Path reportFile = projectRoot.resolve(
+                "target/manager-qa-report.html");
+
+        if (!Files.exists(resultsFile)) {
+            throw new IOException(
+                    "TestNG results not found: " + resultsFile
+                    + "\nRun mvn clean test first.");
+        }
+
+        DocumentBuilderFactory factory =
+                DocumentBuilderFactory.newInstance();
+
+        // Prevent XML external-entity processing.
+        factory.setFeature(
+                "http://apache.org/xml/features/disallow-doctype-decl",
+                true);
+
+        Document document = factory.newDocumentBuilder()
+                .parse(resultsFile.toFile());
+
+        Element root = document.getDocumentElement();
+
+        int passed = Integer.parseInt(
+                root.getAttribute("passed"));
+
+        int failed = Integer.parseInt(
+                root.getAttribute("failed"));
+
+        int skipped = Integer.parseInt(
+                root.getAttribute("skipped"));
+
+        int total = passed + failed + skipped;
+
+        String status = (failed == 0 && total > 0)
+                ? "PASS" : "FAIL";
+        
+        String executionSource = (args.length > 0 && !args[0].isBlank())
+                ? args[0]
+                : "Local PC";
+        
+        String executionDate = ZonedDateTime.now().format(
+                DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd HH:mm:ss z"));
+
+        String html = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Manager QA Execution Report</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 35px auto;
+                            max-width: 900px;
+                            padding: 0 20px;
+                            color: #243247;
+                            background: #f5f7fa;
+                        }
+                        section {
+                            background: white;
+                            padding: 24px;
+                            margin-bottom: 20px;
+                            border-radius: 8px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        th, td {
+                            padding: 12px;
+                            text-align: left;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        th { background: #edf1f5; }
+                        .status {
+                            font-size: 22px;
+                            font-weight: bold;
+                            color: STATUS_COLOR;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <section>
+                        <h1>QA Execution Report</h1>
+                        <p><strong>Project:</strong>
+                           Selenium-Cucumber BDD Automation Framework</p>
+                        <p><strong>Execution Source:</strong> EXECUTION_SOURCE</p>
+                        <p><strong>Execution date:</strong>
+                           EXECUTION_DATE</p>
+                        <p class="status">Overall Status: STATUS</p>
+                    </section>
+                    <section>
+                        <h2>Test Execution Summary</h2>
+                        <table>
+                            <tr><th>Metric</th><th>Result</th></tr>
+                            <tr><td>Total Tests</td><td>TOTAL</td></tr>
+                            <tr><td>Passed</td><td>PASSED</td></tr>
+                            <tr><td>Failed</td><td>FAILED</td></tr>
+                            <tr><td>Skipped</td><td>SKIPPED</td></tr>
+                        </table>
+                    </section>
+                    <section>
+                        <h2>Manager Summary</h2>
+                        <p>Automated execution completed with PASSED
+                           passed, FAILED failed, and SKIPPED skipped tests.</p>
+                        <p>Results are based on the TestNG XML report
+                           generated by Maven.</p>
+                    </section>
+                </body>
+                </html>
+                """;
+
+        			html = html.replace("EXECUTION_SOURCE", executionSource);
+        			html = html.replace("STATUS_COLOR",
+                failed == 0 && total > 0 ? "#18794e" : "#b42318")
+                .replace("EXECUTION_DATE", executionDate)
+                .replace("STATUS", status)
+                .replace("TOTAL", String.valueOf(total))
+                .replace("PASSED", String.valueOf(passed))
+                .replace("FAILED", String.valueOf(failed))
+                .replace("SKIPPED", String.valueOf(skipped));
+
+        Files.createDirectories(reportFile.getParent());
+        Files.writeString(reportFile, html, StandardCharsets.UTF_8);
+
+        System.out.println("Manager QA report created: " + reportFile);
+        System.out.println("Total: " + total
+                + " | Passed: " + passed
+                + " | Failed: " + failed
+                + " | Skipped: " + skipped);
+        System.out.println("Overall Status: " + status);
+    }
+}
+
+// R. Click on this file and run as Java application--that will show on bottom console as 
+//Manager QA report created: C:\Users\moham\selenium-cucumber-atdd-bdd-framework\target\manager-qa-report.html
+//Total: 3 | Passed: 3 | Failed: 0 | Skipped: 0
+//Overall Status: PASS
