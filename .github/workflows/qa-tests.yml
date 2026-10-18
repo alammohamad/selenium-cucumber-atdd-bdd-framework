@@ -23,6 +23,10 @@ jobs:
           cache: maven
 
       - name: Run Cucumber tests
+        env:
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          QA_EMAIL_RECIPIENT: ${{ secrets.QA_EMAIL_RECIPIENT }}
         run: mvn --batch-mode clean test
 
       # Generate the manager report when TestNG results exist

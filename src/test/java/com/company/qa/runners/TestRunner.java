@@ -1,11 +1,12 @@
-
 package com.company.qa.runners;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 
 import io.cucumber.testng.AbstractTestNGCucumberTests;
 import io.cucumber.testng.CucumberOptions;
 
+@Listeners(EmailTestListener.class)
 @CucumberOptions(
     features = "src/test/resources/features",
     glue = {

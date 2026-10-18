@@ -9,37 +9,47 @@ public class ConfigReader {
     private static final Properties properties = new Properties();
 
     static {
+        String environment = System.getProperty("env", "qa")
+                .trim()
+                .toLowerCase();
+
+        if (!environment.equals("qa") && !environment.equals("prod")) {
+            throw new IllegalArgumentException(
+                    "Invalid environment: " + environment
+                    + ". Use qa or prod.");
+        }
+
+        String configFile = "config/config-" + environment + ".properties";
+
         try (InputStream input = ConfigReader.class
                 .getClassLoader()
-                .getResourceAsStream("config/config-qa.properties")) {
+                .getResourceAsStream(configFile)) {
 
             if (input == null) {
                 throw new RuntimeException(
-                    "Cannot find config/config-qa.properties");
+                        "Cannot find configuration file: " + configFile);
             }
 
             properties.load(input);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load configuration", e);
+            throw new RuntimeException(
+                    "Failed to load configuration: " + configFile, e);
         }
     }
 
-
     public static String getBrowser() {
-
-    		return System.getProperty(
-    				"browser",
-    				properties.getProperty("browser", "chrome"))
-    				.trim()
-    				.toLowerCase();
+        return System.getProperty(
+                "browser",
+                properties.getProperty("browser", "chrome"))
+                .trim()
+                .toLowerCase();
     }
-    
-    public static String getBaseUrl() {
 
+    public static String getBaseUrl() {
         return properties.getProperty(
-            "baseUrl",
-            "https://opensource-demo.orangehrmlive.com/"
+                "baseUrl",
+                "https://opensource-demo.orangehrmlive.com/"
         ).trim();
     }
 }
