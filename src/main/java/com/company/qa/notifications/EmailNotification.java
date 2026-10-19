@@ -47,10 +47,24 @@ public class EmailNotification {
             Message.RecipientType.TO,
             InternetAddress.parse(recipient));
         message.setSubject(subject);
-        message.setText(body);
+        String executionSource = getExecutionSource();
+        message.setText("Execution Source: " + executionSource + "\n\n" + body);
 
         Transport.send(message);
 
         System.out.println("Email notification sent successfully.");
     }
+    
+    private static String getExecutionSource() {
+        if (System.getenv("JENKINS_URL") != null) {
+            return "Jenkins";
+        }
+
+        if (System.getenv("GITHUB_ACTIONS") != null) {
+            return "GitHub Actions";
+        }
+
+        return "Local PC";
+    }
+
 }
